@@ -1,2 +1,4 @@
-export { default as LuminaFloating } from './components/LuminaFloating';
+import LuminaFloating from './components/LuminaFloating';
+export { LuminaFloating };
+export default LuminaFloating;
 export * from './types'; 

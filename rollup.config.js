@@ -12,12 +12,14 @@ export default {
     {
       file: 'tmp/index.js',
       format: 'cjs',
-      sourcemap: true
+      sourcemap: true,
+      exports: 'named'
     },
     {
       file: 'tmp/index.esm.js',
       format: 'esm',
-      sourcemap: true
+      sourcemap: true,
+      exports: 'named'
     }
   ],
   plugins: [
