@@ -5,9 +5,9 @@
     "lib": ["dom", "esnext"],
     "jsx": "react",
     "declaration": true,
-    "declarationDir": "dist",
+    "declarationDir": "tmp",
     "sourceMap": true,
-    "outDir": "dist",
+    "outDir": "tmp",
     "strict": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
@@ -16,5 +16,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "tmp"]
 } 
