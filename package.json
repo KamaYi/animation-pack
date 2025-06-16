@@ -7,7 +7,7 @@
   "module": "./xtmp/index.esm.js",
   "types": "./xtmp/index.d.ts",
   "files": [
-    "tmp/",
+    "xtmp/",
     "README.md"
   ],
   "publishConfig": {
