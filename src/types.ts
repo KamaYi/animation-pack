@@ -3,7 +3,6 @@ import { ReactNode } from 'react';
 export interface LuminaFloatingProps {
   startX: number;
   startY: number;
-  targetElement: HTMLElement | null;
   imageUrl: string;
   count?: number;
   duration?: number;
@@ -15,8 +14,9 @@ export interface LuminaFloatingProps {
   jumpDelay?: number; // 跳动动画的随机延迟最大值(s)
   flyDelay?: number; // 飞行动画的间隔时间(s)
   jumpingAnimationClass?: string; // 自定义跳动动画类名
-  jumpingAnimationType?: 1 | 2 | 3; // 1=默认跳动，2=金币收集，3=未来扩展
+  jumpingAnimationType?: 1 | 2; // 1=默认跳动，2=散开
   flyToTargetClass?: string; // 自定义飞行动画类名
   floatingItemClass?: string; // 自定义浮动元素类名
   onComplete?: () => void;
+  children: ReactNode;
 } 

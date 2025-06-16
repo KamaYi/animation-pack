@@ -2,12 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { LuminaFloatingProps } from '../../types';
 import './LuminaFloating.less';
 
-type AnimationType = 1 | 2 | 3;
+type AnimationType = 1 | 2;
 
 const LuminaFloating: React.FC<LuminaFloatingProps> = ({
   startX,
   startY,
-  targetElement,
   imageUrl,
   count = 10,
   beatTime = 0.8,
@@ -22,13 +21,21 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
   flyToTargetClass = 'fly-to-target',
   floatingItemClass = 'floating-item',
   onComplete,
+  children
 }) => {
   const cleanupRef = useRef<(() => void) | null>(null);
+  // 创建对子元素容器的引用
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!targetElement) return;
-
-    const targetRect = targetElement.getBoundingClientRect();
+    // 获取容器内的第一个子元素作为目标
+    if (!containerRef.current) return;
+    
+    const firstChild = containerRef.current.firstElementChild as HTMLElement;
+    if (!firstChild) return;
+    
+    const target = firstChild;
+    const targetRect = target.getBoundingClientRect();
     const targetX = targetRect.left + targetRect.width / 2;
     const targetY = targetRect.top + targetRect.height / 2;
 
@@ -36,6 +43,11 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     const elements: HTMLImageElement[] = [];
     // 存储所有定时器ID
     const timerIds: number[] = [];
+
+    // 根据动画类型确定等待时间
+    const waitBeforeFly = jumpingAnimationType === 1 ? beatTime : 
+                          jumpingAnimationType === 2 ? 0.8 : 
+                          beatTime; // 默认使用beatTime
 
     // 计算图片出现的位置（围绕点击位置的小范围内随机分布）
     for (let i = 0; i < count; i++) {
@@ -56,11 +68,18 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
       elements.push(floatingEl);
 
       // 根据动画类型确定使用哪种动画类
-      const actualJumpingAnimationClass = jumpingAnimationType === 1 
-        ? jumpingAnimationClass
-        : jumpingAnimationType === 2 
-        ? 'coin-spin-animation' 
-        : jumpingAnimationClass;
+      let actualJumpingAnimationClass = '';
+      switch (jumpingAnimationType) {
+        case 1:
+          actualJumpingAnimationClass = jumpingAnimationClass;
+          break;
+        case 2:
+          actualJumpingAnimationClass = 'coin-spin-animation';
+          break;
+        default:
+          actualJumpingAnimationClass = jumpingAnimationClass;
+          break;
+      }
         
       // 记录动画类型，用于后续处理
       floatingEl.dataset.animationType = jumpingAnimationType.toString();
@@ -73,13 +92,15 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
       timerIds.push(jumpTimerId as unknown as number);
     }
 
-    // 等待beatTime后，停止跳动，按顺序飞向目标
+    // 等待动画效果结束后，按顺序飞向目标
     const mainTimerId = setTimeout(() => {
-      // 停止所有元素的跳动动画
-      elements.forEach(el => {
-        el.classList.remove('jumping-animation');
-        el.classList.remove('coin-spin-animation');
-      });
+      // 对于类型1(跳动动画)，需要停止无限循环的动画
+      if (jumpingAnimationType === 1) {
+        elements.forEach(el => {
+          el.classList.remove('jumping-animation');
+        });
+      }
+      // 类型2(散开动画)已经是forwards模式，无需移除类，会自动保持在最后一帧
 
       // 按顺序飞向目标
       (positiveSequence ? elements : elements.reverse()).forEach((el, index) => {
@@ -121,7 +142,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
         }, currentFlyDelay * 1000);
         timerIds.push(flyTimerId as unknown as number);
       });
-    }, beatTime * 1000);
+    }, waitBeforeFly * 1000);
     timerIds.push(mainTimerId as unknown as number);
 
     // 保存清除函数
@@ -141,7 +162,6 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
   }, [
     startX,
     startY,
-    targetElement,
     imageUrl,
     count,
     beatTime,
@@ -158,8 +178,19 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     onComplete
   ]);
 
-  // 这个组件不需要渲染任何内容，它只处理动画效果
-  return null;
+  // 渲染一个不可见的容器来包含子元素
+  return (
+    <div 
+      ref={containerRef} 
+      style={{ 
+        display: 'contents', // 这个样式使容器在DOM中不可见，但其子元素保持原有布局
+        margin: 0,
+        padding: 0
+      }}
+    >
+      {children}
+    </div>
+  );
 };
 
 export default LuminaFloating; 

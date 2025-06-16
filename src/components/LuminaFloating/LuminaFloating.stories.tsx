@@ -1,10 +1,32 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, forwardRef } from 'react';
 import { Meta, StoryObj } from '@storybook/react';
 import LuminaFloating from './LuminaFloating';
 import starImage from '../../assets/images/star.png';
 import heartImage from '../../assets/images/heart.png';
 
-type AnimationType = 1 | 2 | 3;
+type AnimationType = 1 | 2;
+
+// 创建一个可以接收ref的头像组件
+const Avatar = forwardRef<HTMLDivElement, { style?: React.CSSProperties }>(
+  ({ style = {} }, ref) => (
+    <div
+      ref={ref}
+      style={{
+        width: '50px',
+        height: '50px',
+        borderRadius: '50%',
+        backgroundColor: '#f0f0f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '24px',
+        ...style
+      }}
+    >
+      👤
+    </div>
+  )
+);
 
 const meta: Meta<typeof LuminaFloatingWrapper> = {
   title: 'Animation/LuminaFloating',
@@ -48,8 +70,8 @@ const meta: Meta<typeof LuminaFloatingWrapper> = {
     },
     jumpingAnimationType: { 
       control: 'radio',
-      options: [1, 2, 3],
-      description: '动画类型(1=默认跳动，2=散开，3=未来扩展)'
+      options: [1, 2],
+      description: '动画类型(1=默认跳动，2=散开)'
     },
     imageUrl: { 
       control: 'select',
@@ -77,11 +99,10 @@ function LuminaFloatingWrapper({
   jumpDelay = 0.3,
   flyDelay = 0.1,
   jumpingAnimationType = 1 as AnimationType,
-  imageUrl = heartImage,
+  imageUrl = heartImage
 }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
-  const targetRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (isAnimating) return;
@@ -116,30 +137,18 @@ function LuminaFloatingWrapper({
         点击触发动画
       </button>
       
-      <div 
-        ref={targetRef}
+      <Avatar 
         style={{
-          width: '50px',
-          height: '50px',
-          borderRadius: '50%',
-          backgroundColor: '#f0f0f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           position: 'absolute',
           top: '20px',
           right: '20px',
-          fontSize: '24px'
         }}
-      >
-        👤
-      </div>
+      />
       
       {isAnimating && (
         <LuminaFloating
           startX={startPosition.x}
           startY={startPosition.y}
-          targetElement={targetRef.current}
           imageUrl={imageUrl}
           count={count}
           beatTime={beatTime}
@@ -151,7 +160,15 @@ function LuminaFloatingWrapper({
           flyDelay={flyDelay}
           jumpingAnimationType={jumpingAnimationType}
           onComplete={handleAnimationComplete}
-        />
+        >
+          <Avatar 
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+            }}
+          />
+        </LuminaFloating>
       )}
 
       <div style={{ marginTop: '20px', fontSize: '14px', color: '#666'}}>
@@ -165,7 +182,7 @@ function LuminaFloatingWrapper({
           <li>飞行时间: {flyToTargetDuration}s</li>
           <li>跳动延迟: {jumpDelay}s</li>
           <li>飞行间隔: {flyDelay}s</li>
-          <li>动画类型: {jumpingAnimationType === 1 ? '默认跳动' : jumpingAnimationType === 2 ? '散开' : '未来扩展'}</li>
+          <li>动画类型: {jumpingAnimationType === 1 ? '默认跳动' : '散开'}</li>
         </ul>
       </div>
     </div>

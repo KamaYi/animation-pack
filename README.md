@@ -1,73 +1,109 @@
-# LuminaFloating Animation
+# LuminaFloating
 
-一个简单易用的React动画组件库，提供浮动元素动画效果。
+一个React动画组件，可以在页面上生成浮动元素，如心形、星星等图片，然后朝目标元素飞去。
 
 ## 安装
 
 ```bash
-npm install @lumina/animate
+npm install lumina-floating
 ```
 
 ## 使用方法
 
 ```jsx
-import React, { useRef } from 'react';
-import { LuminaFloating } from '@lumina/animate';
+import React, { useState } from 'react';
+import { LuminaFloating } from 'lumina-floating';
+import heartImage from './heart.png';
 
-const MyComponent = () => {
-  const targetRef = useRef(null);
+function App() {
   const [isAnimating, setIsAnimating] = useState(false);
-  
+  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
+
   const handleClick = (event) => {
+    if (isAnimating) return;
+    
     const rect = event.currentTarget.getBoundingClientRect();
+    setStartPosition({
+      x: rect.left,
+      y: rect.top
+    });
     setIsAnimating(true);
-    
-    // 动画完成后的回调
-    const handleComplete = () => {
-      setIsAnimating(false);
-    };
-    
-    return (
-      <div>
-        <button onClick={handleClick}>点击触发动画</button>
-        
-        <div ref={targetRef}>目标元素</div>
-        
-        {isAnimating && (
-          <LuminaFloating
-            startX={rect.left}
-            startY={rect.top}
-            targetElement={targetRef.current}
-            imageUrl={yourImageUrl}
-            count={10}
-            beatTime={0.8}
-            flyToTargetDuration={0.8}
-            onComplete={handleComplete}
-          />
-        )}
-      </div>
-    );
   };
-};
+
+  const handleAnimationComplete = () => {
+    setIsAnimating(false);
+  };
+
+  return (
+    <div>
+      <button onClick={handleClick}>
+        点击触发动画
+      </button>
+      
+      {isAnimating && (
+        <LuminaFloating
+          startX={startPosition.x}
+          startY={startPosition.y}
+          imageUrl={heartImage}
+          count={10}
+          onComplete={handleAnimationComplete}
+        >
+          <div className="target-element">
+            目标元素
+          </div>
+        </LuminaFloating>
+      )}
+    </div>
+  );
+}
 ```
 
-## 可配置参数
+## 属性
 
-| 参数名 | 类型 | 默认值 | 说明 |
-|-------|------|-------|------|
-| startX | number | 必填 | 起始X坐标 |
-| startY | number | 必填 | 起始Y坐标 |
-| targetElement | HTMLElement | 必填 | 目标DOM元素 |
+| 属性名 | 类型 | 默认值 | 描述 |
+|---|---|---|---|
+| startX | number | 必填 | 动画开始的X坐标 |
+| startY | number | 必填 | 动画开始的Y坐标 |
 | imageUrl | string | 必填 | 浮动元素的图片URL |
 | count | number | 10 | 浮动元素的数量 |
-| beatTime | number | 0.8 | 跳动动画持续时间(秒) |
+| beatTime | number | 0.8 | 跳动动画的持续时间(秒) |
 | positiveSequence | boolean | false | 是否正序，false是倒序 |
-| randomOffsetX | number | 40 | X轴随机偏移量(像素) |
-| randomOffsetY | number | 50 | Y轴随机偏移量(像素) |
+| randomOffsetX | number | 40 | 随机偏移量X轴，0是不偏移 |
+| randomOffsetY | number | 50 | 随机偏移量Y轴，0是不偏移 |
 | flyToTargetDuration | number | 0.8 | 飞向目标元素的动画时间(秒) |
 | jumpDelay | number | 0.3 | 跳动动画的随机延迟最大值(秒) |
 | flyDelay | number | 0.1 | 飞行动画的间隔时间(秒) |
 | jumpingAnimationClass | string | 'jumping-animation' | 自定义跳动动画类名 |
+| jumpingAnimationType | 1 \| 2 | 1 | 动画类型：1=默认跳动，2=散开 |
 | flyToTargetClass | string | 'fly-to-target' | 自定义飞行动画类名 |
 | floatingItemClass | string | 'floating-item' | 自定义浮动元素类名 |
-| onComplete | function | - | 动画完成时的回调函数 |
+| onComplete | () => void | undefined | 动画完成后的回调函数 |
+| children | ReactNode | 必填 | 子元素，将作为飞行目标 |
+
+## 动画类型
+
+组件支持两种动画类型：
+
+1. 默认跳动动画（`jumpingAnimationType={1}`）
+2. 散开动画（`jumpingAnimationType={2}`），类似于钻石/金币收集效果
+
+## 自定义样式
+
+您可以通过传递自定义的CSS类名来修改动画样式：
+
+```jsx
+<LuminaFloating
+  startX={startPosition.x}
+  startY={startPosition.y}
+  imageUrl={heartImage}
+  jumpingAnimationClass="my-jumping-animation"
+  flyToTargetClass="my-fly-animation"
+  floatingItemClass="my-floating-item"
+>
+  <div className="target">目标</div>
+</LuminaFloating>
+```
+
+## 许可证
+
+MIT
