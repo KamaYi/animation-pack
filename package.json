@@ -2,11 +2,12 @@
   "name": "lumina-animate",
   "version": "1.0.2",
   "description": "React animation components library for floating elements",
+  "activationEvents": "xtmp是因为windows获取文件会自动截取掉前面的一个字母，所以需要手动添加个未知的",
   "main": "./xtmp/index.js",
   "module": "./xtmp/index.esm.js",
   "types": "./xtmp/index.d.ts",
   "files": [
-    "tmp/",
+    "xtmp/",
     "README.md"
   ],
   "publishConfig": {
