@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { LuminaFloatingProps } from '../../types';
-import './LuminaFloating.css';
+import './LuminaFloating.less';
+
+type AnimationType = 1 | 2 | 3;
 
 const LuminaFloating: React.FC<LuminaFloatingProps> = ({
   startX,
@@ -16,6 +18,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
   jumpDelay = 0.3,
   flyDelay = 0.1,
   jumpingAnimationClass = 'jumping-animation',
+  jumpingAnimationType = 1 as AnimationType,
   flyToTargetClass = 'fly-to-target',
   floatingItemClass = 'floating-item',
   onComplete,
@@ -52,10 +55,20 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
       document.body.appendChild(floatingEl);
       elements.push(floatingEl);
 
+      // 根据动画类型确定使用哪种动画类
+      const actualJumpingAnimationClass = jumpingAnimationType === 1 
+        ? jumpingAnimationClass
+        : jumpingAnimationType === 2 
+        ? 'coin-spin-animation' 
+        : jumpingAnimationClass;
+        
+      // 记录动画类型，用于后续处理
+      floatingEl.dataset.animationType = jumpingAnimationType.toString();
+        
       // 应用循环跳动动画，每个元素有一个小的随机延迟
       const randomJumpDelay = Math.random() * jumpDelay;
       const jumpTimerId = setTimeout(() => {
-        floatingEl.classList.add(jumpingAnimationClass);
+        floatingEl.classList.add(actualJumpingAnimationClass);
       }, randomJumpDelay * 1000);
       timerIds.push(jumpTimerId as unknown as number);
     }
@@ -64,7 +77,8 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     const mainTimerId = setTimeout(() => {
       // 停止所有元素的跳动动画
       elements.forEach(el => {
-        el.classList.remove(jumpingAnimationClass);
+        el.classList.remove('jumping-animation');
+        el.classList.remove('coin-spin-animation');
       });
 
       // 按顺序飞向目标
@@ -85,8 +99,13 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
           el.style.setProperty('--deltaX', `${deltaX}px`);
           el.style.setProperty('--deltaY', `${deltaY}px`);
           el.style.setProperty('--flyToTargetDuration', `${flyToTargetDuration}s`);
+          
+          // 所有类型动画使用相同的飞行动画类
           el.classList.add(flyToTargetClass);
 
+          // 所有动画使用相同的动画结束时间
+          const animationDuration = flyToTargetDuration;
+            
           // 动画结束后移除元素
           const cleanupTimerId = setTimeout(() => {
             if (document.body.contains(el)) {
@@ -97,7 +116,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
             if (index === elements.length - 1 && onComplete) {
               onComplete();
             }
-          }, flyToTargetDuration * 1000);
+          }, animationDuration * 1000);
           timerIds.push(cleanupTimerId as unknown as number);
         }, currentFlyDelay * 1000);
         timerIds.push(flyTimerId as unknown as number);
@@ -133,6 +152,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     jumpDelay,
     flyDelay,
     jumpingAnimationClass,
+    jumpingAnimationType,
     flyToTargetClass,
     floatingItemClass,
     onComplete

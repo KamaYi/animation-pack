@@ -7,21 +7,45 @@
   object-fit: contain;
   pointer-events: none;
 }
-
 /* 跳动动画 */
 @keyframes jump {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) scale(1);
   }
   50% {
     transform: translateY(-15px) scale(1.1);
   }
 }
-
 .jumping-animation {
   animation: jump 0.5s ease-in-out infinite;
 }
-
+/* 散开动画 */
+@keyframes diamondSpread {
+  0% {
+    transform: scale(0.8) translateY(0);
+    opacity: 0.7;
+    filter: brightness(0.9);
+  }
+  40% {
+    transform: scale(1.1) translateY(-12px);
+    opacity: 0.9;
+    filter: brightness(1.2);
+  }
+  80% {
+    transform: scale(1.15) translateY(-15px) rotate(5deg);
+    opacity: 1;
+    filter: brightness(1.4);
+  }
+  100% {
+    transform: scale(1.2) translateY(-18px) rotate(8deg);
+    opacity: 1;
+    filter: brightness(1.5);
+  }
+}
+.coin-spin-animation {
+  animation: diamondSpread 0.8s ease-out;
+}
 /* 飞向目标动画 */
 @keyframes flyToTarget {
   0% {
@@ -33,7 +57,6 @@
     opacity: 0;
   }
 }
-
 .fly-to-target {
   animation: flyToTarget var(--flyToTargetDuration) ease-in-out forwards;
-} 
+}

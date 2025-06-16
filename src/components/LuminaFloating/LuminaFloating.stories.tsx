@@ -4,6 +4,8 @@ import LuminaFloating from './LuminaFloating';
 import starImage from '../../assets/images/star.png';
 import heartImage from '../../assets/images/heart.png';
 
+type AnimationType = 1 | 2 | 3;
+
 const meta: Meta<typeof LuminaFloatingWrapper> = {
   title: 'Animation/LuminaFloating',
   component: LuminaFloatingWrapper,
@@ -44,6 +46,11 @@ const meta: Meta<typeof LuminaFloatingWrapper> = {
       control: { type: 'range', min: 0, max: 0.5, step: 0.05 },
       description: '飞行动画的间隔时间(秒)'
     },
+    jumpingAnimationType: { 
+      control: 'radio',
+      options: [1, 2, 3],
+      description: '动画类型(1=默认跳动，2=散开，3=未来扩展)'
+    },
     imageUrl: { 
       control: 'select',
       options: ['heart', 'star'],
@@ -69,6 +76,7 @@ function LuminaFloatingWrapper({
   flyToTargetDuration = 0.8,
   jumpDelay = 0.3,
   flyDelay = 0.1,
+  jumpingAnimationType = 1 as AnimationType,
   imageUrl = heartImage,
 }) {
   const [isAnimating, setIsAnimating] = useState(false);
@@ -141,6 +149,7 @@ function LuminaFloatingWrapper({
           flyToTargetDuration={flyToTargetDuration}
           jumpDelay={jumpDelay}
           flyDelay={flyDelay}
+          jumpingAnimationType={jumpingAnimationType}
           onComplete={handleAnimationComplete}
         />
       )}
@@ -156,6 +165,7 @@ function LuminaFloatingWrapper({
           <li>飞行时间: {flyToTargetDuration}s</li>
           <li>跳动延迟: {jumpDelay}s</li>
           <li>飞行间隔: {flyDelay}s</li>
+          <li>动画类型: {jumpingAnimationType === 1 ? '默认跳动' : jumpingAnimationType === 2 ? '散开' : '未来扩展'}</li>
         </ul>
       </div>
     </div>
@@ -172,6 +182,7 @@ export const Configurable: Story = {
     flyToTargetDuration: 0.8,
     jumpDelay: 0.3,
     flyDelay: 0.1,
+    jumpingAnimationType: 1 as AnimationType,
     imageUrl: heartImage
   }
 }; 
