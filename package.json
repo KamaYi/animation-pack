@@ -2,9 +2,9 @@
   "name": "lumina-animate",
   "version": "1.0.2",
   "description": "React animation components library for floating elements",
-  "main": "./tmp/index.js",
-  "module": "./tmp/index.esm.js",
-  "types": "./tmp/index.d.ts",
+  "main": "./xtmp/index.js",
+  "module": "./xtmp/index.esm.js",
+  "types": "./xtmp/index.d.ts",
   "files": [
     "tmp/",
     "README.md"
