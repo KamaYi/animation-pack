@@ -1,12 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, cloneElement, isValidElement, ReactElement } from 'react';
 import { LuminaFloatingProps } from '../../types';
 import './LuminaFloating.less';
 
 type AnimationType = 1 | 2;
 
 const LuminaFloating: React.FC<LuminaFloatingProps> = ({
-  startX,
-  startY,
   imageUrl,
   count = 10,
   beatTime = 0.8,
@@ -20,21 +18,74 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
   jumpingAnimationType = 1 as AnimationType,
   flyToTargetClass = 'fly-to-target',
   floatingItemClass = 'floating-item',
+  targetId,
   onComplete,
   children
 }) => {
   const cleanupRef = useRef<(() => void) | null>(null);
-  // 创建对子元素容器的引用
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [startPosition, setStartPosition] = useState<{ x: number, y: number } | null>(null);
+
+  // 处理子元素的点击事件
+  const handleChildClick = (event: React.MouseEvent) => {
+    if (isAnimating) return;
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    setStartPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    });
+    setIsAnimating(true);
+  };
+
+  // 克隆子元素并添加点击事件
+  const enhancedChildren = React.Children.map(children, child => {
+    if (isValidElement(child)) {
+      return cloneElement(child as ReactElement<any>, {
+        onClick: (e: React.MouseEvent) => {
+          handleChildClick(e);
+          // 如果原来有onClick，也要调用
+          if (typeof (child as ReactElement<any>).props.onClick === 'function') {
+            (child as ReactElement<any>).props.onClick(e);
+          }
+        },
+        style: {
+          ...((child as ReactElement<any>).props.style || {}),
+          cursor: 'pointer'
+        }
+      });
+    }
+    return child;
+  });
 
   useEffect(() => {
-    // 获取容器内的第一个子元素作为目标
+    if (!isAnimating || !startPosition) return;
+
+    // 获取容器内的第一个子元素作为起始元素（如果未指定startX/startY）
     if (!containerRef.current) return;
     
     const firstChild = containerRef.current.firstElementChild as HTMLElement;
     if (!firstChild) return;
+
+    // 使用传入的startX/startY或计算得到的startPosition
+    const startX = propStartX ?? startPosition.x;
+    const startY = propStartY ?? startPosition.y;
     
-    const target = firstChild;
+    // 获取目标元素 - 首先尝试使用targetId，如果没有则使用容器中的第一个子元素
+    let target: HTMLElement;
+    
+    if (targetId) {
+      const targetElement = document.getElementById(targetId);
+      if (!targetElement) {
+        console.error(`目标元素未找到: #${targetId}`);
+        return;
+      }
+      target = targetElement;
+    } else {
+      target = firstChild;
+    }
+    
     const targetRect = target.getBoundingClientRect();
     const targetX = targetRect.left + targetRect.width / 2;
     const targetY = targetRect.top + targetRect.height / 2;
@@ -134,8 +185,11 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
             }
 
             // 如果是最后一个元素，清除所有定时器和执行完成回调
-            if (index === elements.length - 1 && onComplete) {
-              onComplete();
+            if (index === elements.length - 1) {
+              setIsAnimating(false);
+              if (onComplete) {
+                onComplete();
+              }
             }
           }, animationDuration * 1000);
           timerIds.push(cleanupTimerId as unknown as number);
@@ -153,6 +207,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
           document.body.removeChild(el);
         }
       });
+      setIsAnimating(false);
     };
     
     cleanupRef.current = cleanup;
@@ -160,8 +215,10 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     // 组件卸载时清除
     return cleanup;
   }, [
-    startX,
-    startY,
+    propStartX,
+    propStartY,
+    startPosition,
+    isAnimating,
     imageUrl,
     count,
     beatTime,
@@ -175,6 +232,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     jumpingAnimationType,
     flyToTargetClass,
     floatingItemClass,
+    targetId,
     onComplete
   ]);
 
@@ -183,12 +241,10 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     <div 
       ref={containerRef} 
       style={{ 
-        display: 'contents', // 这个样式使容器在DOM中不可见，但其子元素保持原有布局
-        margin: 0,
-        padding: 0
+        display: 'contents'
       }}
     >
-      {children}
+      {enhancedChildren}
     </div>
   );
 };

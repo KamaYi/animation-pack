@@ -1,4 +1,4 @@
-import React, { useRef, useState, forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { Meta, StoryObj } from '@storybook/react';
 import LuminaFloating from './LuminaFloating';
 import starImage from '../../assets/images/star.png';
@@ -7,10 +7,11 @@ import heartImage from '../../assets/images/heart.png';
 type AnimationType = 1 | 2;
 
 // 创建一个可以接收ref的头像组件
-const Avatar = forwardRef<HTMLDivElement, { style?: React.CSSProperties }>(
-  ({ style = {} }, ref) => (
+const Avatar = forwardRef<HTMLDivElement, { style?: React.CSSProperties; id?: string }>(
+  ({ style = {}, id }, ref) => (
     <div
       ref={ref}
+      id={id}
       style={{
         width: '50px',
         height: '50px',
@@ -101,75 +102,47 @@ function LuminaFloatingWrapper({
   jumpingAnimationType = 1 as AnimationType,
   imageUrl = heartImage
 }) {
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (isAnimating) return;
-    
-    const rect = event.currentTarget.getBoundingClientRect();
-    setStartPosition({
-      x: rect.left,
-      y: rect.top
-    });
-    setIsAnimating(true);
-  };
-
-  const handleAnimationComplete = () => {
-    setIsAnimating(false);
-  };
-
   return (
     <div style={{ padding: '20px', position: 'relative', height: '300px', width: '500px' }}>
       <h2 className="title">浮动元素动画演示</h2>
-      <button
-        onClick={handleClick}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginBottom: '20px'
-        }}
-      >
-        点击触发动画
-      </button>
+      <p style={{ marginBottom: '20px', color: '#666' }}>点击左侧按钮，元素会飞向右上角的头像（通过ID指定）</p>
       
+      <LuminaFloating
+        imageUrl={imageUrl}
+        count={count}
+        beatTime={beatTime}
+        positiveSequence={positiveSequence}
+        randomOffsetX={randomOffsetX}
+        randomOffsetY={randomOffsetY}
+        flyToTargetDuration={flyToTargetDuration}
+        jumpDelay={jumpDelay}
+        flyDelay={flyDelay}
+        jumpingAnimationType={jumpingAnimationType}
+        targetId="target-avatar"
+      >
+        <button
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginBottom: '20px'
+          }}
+        >
+          点击触发动画
+        </button>
+      </LuminaFloating>
+
       <Avatar 
+        id="target-avatar"
         style={{
           position: 'absolute',
           top: '20px',
           right: '20px',
         }}
       />
-      
-      {isAnimating && (
-        <LuminaFloating
-          startX={startPosition.x}
-          startY={startPosition.y}
-          imageUrl={imageUrl}
-          count={count}
-          beatTime={beatTime}
-          positiveSequence={positiveSequence}
-          randomOffsetX={randomOffsetX}
-          randomOffsetY={randomOffsetY}
-          flyToTargetDuration={flyToTargetDuration}
-          jumpDelay={jumpDelay}
-          flyDelay={flyDelay}
-          jumpingAnimationType={jumpingAnimationType}
-          onComplete={handleAnimationComplete}
-        >
-          <Avatar 
-            style={{
-              position: 'absolute',
-              top: '20px',
-              right: '20px',
-            }}
-          />
-        </LuminaFloating>
-      )}
 
       <div style={{ marginTop: '20px', fontSize: '14px', color: '#666'}}>
         <p>当前配置:</p>
@@ -183,6 +156,7 @@ function LuminaFloatingWrapper({
           <li>跳动延迟: {jumpDelay}s</li>
           <li>飞行间隔: {flyDelay}s</li>
           <li>动画类型: {jumpingAnimationType === 1 ? '默认跳动' : '散开'}</li>
+          <li>目标元素ID: target-avatar</li>
         </ul>
       </div>
     </div>

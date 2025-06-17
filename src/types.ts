@@ -1,8 +1,6 @@
 import { ReactNode } from 'react';
 
 export interface LuminaFloatingProps {
-  startX: number;
-  startY: number;
   imageUrl: string;
   count?: number;
   duration?: number;
@@ -17,6 +15,7 @@ export interface LuminaFloatingProps {
   jumpingAnimationType?: 1 | 2; // 1=默认跳动，2=散开
   flyToTargetClass?: string; // 自定义飞行动画类名
   floatingItemClass?: string; // 自定义浮动元素类名
+  targetId?: string; // 目标元素的ID
   onComplete?: () => void;
   children: ReactNode;
 } 

@@ -10,13 +10,13 @@ export default {
   input: 'src/index.ts',
   output: [
     {
-      file: 'tmp/index.js',
+      file: 'xtmp/index.js',
       format: 'cjs',
       sourcemap: true,
       exports: 'named'
     },
     {
-      file: 'tmp/index.esm.js',
+      file: 'xtmp/index.esm.js',
       format: 'esm',
       sourcemap: true,
       exports: 'named'

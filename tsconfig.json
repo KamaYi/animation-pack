@@ -5,9 +5,9 @@
     "lib": ["dom", "esnext"],
     "jsx": "react",
     "declaration": true,
-    "declarationDir": "tmp",
+    "declarationDir": "xtmp",
     "sourceMap": true,
-    "outDir": "tmp",
+    "outDir": "xtmp",
     "strict": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
@@ -16,5 +16,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "tmp"]
+  "exclude": ["node_modules", "xtmp"]
 } 

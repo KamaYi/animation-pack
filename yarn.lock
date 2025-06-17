@@ -2039,6 +2039,14 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
+"lumina-animate@file:":
+  version "1.0.5"
+  resolved "file:../animation-pack"
+  dependencies:
+    "@types/react" "^19.1.8"
+    "@types/react-dom" "^19.1.6"
+    less "^4.3.0"
+
 lz-string@^1.5.0:
   version "1.5.0"
   resolved "https://registry.npmmirror.com/lz-string/-/lz-string-1.5.0.tgz"
