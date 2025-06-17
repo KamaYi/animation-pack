@@ -215,8 +215,6 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     // 组件卸载时清除
     return cleanup;
   }, [
-    propStartX,
-    propStartY,
     startPosition,
     isAnimating,
     imageUrl,
