@@ -69,8 +69,8 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     if (!firstChild) return;
 
     // 使用传入的startX/startY或计算得到的startPosition
-    const startX = propStartX ?? startPosition.x;
-    const startY = propStartY ?? startPosition.y;
+    const startX = startPosition.x;
+    const startY = startPosition.y;
     
     // 获取目标元素 - 首先尝试使用targetId，如果没有则使用容器中的第一个子元素
     let target: HTMLElement;
