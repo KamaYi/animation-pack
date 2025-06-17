@@ -2,12 +2,18 @@
   "name": "lumina-animate",
   "version": "1.0.7",
   "description": "React animation components library for floating elements",
-  "activationEvents": "dist是因为windows获取文件会自动截取掉前面的一个字母，所以需要手动添加个未知的",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "files": [
-    "dist/",
+    "dist",
     "README.md"
   ],
   "publishConfig": {
