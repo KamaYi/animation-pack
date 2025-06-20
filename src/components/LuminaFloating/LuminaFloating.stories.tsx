@@ -1,8 +1,15 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect, useRef } from 'react';
 import { Meta, StoryObj } from '@storybook/react';
 import LuminaFloating from './LuminaFloating';
 import starImage from '../../assets/images/star.png';
 import heartImage from '../../assets/images/heart.png';
+import { LuminaFloatingRef } from '../../types';
+
+// 添加调试信息，输出图片路径
+console.log('图片路径:', {
+  starImage,
+  heartImage
+});
 
 type AnimationType = 1 | 2;
 
@@ -82,6 +89,11 @@ const meta: Meta<typeof LuminaFloatingWrapper> = {
         star: starImage,
       },
       description: '浮动元素的图片'
+    },
+    sourceTargetId: {
+      control: 'select',
+      options: [undefined, 'source-avatar'],
+      description: '起始元素的ID，如果不提供则使用子元素作为起始元素'
     }
   }
 };
@@ -100,14 +112,55 @@ function LuminaFloatingWrapper({
   jumpDelay = 0.3,
   flyDelay = 0.1,
   jumpingAnimationType = 1 as AnimationType,
-  imageUrl = heartImage
+  imageUrl = heartImage,
+  sourceTargetId
+}: {
+  count?: number;
+  beatTime?: number;
+  positiveSequence?: boolean;
+  randomOffsetX?: number;
+  randomOffsetY?: number;
+  flyToTargetDuration?: number;
+  jumpDelay?: number;
+  flyDelay?: number;
+  jumpingAnimationType?: AnimationType;
+  imageUrl?: string;
+  sourceTargetId?: string;
 }) {
+  const hasSourceTarget = !!sourceTargetId;
+  const floatingRef = useRef<LuminaFloatingRef>(null);
+
+  const handleTriggerClick = () => {
+    console.log('触发按钮点击');
+    if (floatingRef.current) {
+      floatingRef.current.triggerAnimation();
+    } else {
+      console.error('组件引用不存在');
+    }
+  };
+
   return (
     <div style={{ padding: '20px', position: 'relative', height: '300px', width: '500px' }}>
       <h2 className="title">浮动元素动画演示</h2>
-      <p style={{ marginBottom: '20px', color: '#666' }}>点击左侧按钮，元素会飞向右上角的头像（通过ID指定）</p>
+      <p style={{ marginBottom: '20px', color: '#666' }}>
+        {hasSourceTarget 
+          ? '点击按钮后，元素会从左上角的源头像出发，飞向右上角的目标头像' 
+          : '点击左侧按钮，元素会飞向右上角的头像（通过ID指定）'}
+      </p>
+      
+      {/* 源元素头像 - 始终显示，但只在指定sourceTargetId时作为起始点 */}
+      <Avatar 
+        id="source-avatar"
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          backgroundColor: '#e8f4fd',
+        }}
+      />
       
       <LuminaFloating
+        ref={floatingRef}
         imageUrl={imageUrl}
         count={count}
         beatTime={beatTime}
@@ -119,6 +172,7 @@ function LuminaFloatingWrapper({
         flyDelay={flyDelay}
         jumpingAnimationType={jumpingAnimationType}
         targetId="target-avatar"
+        sourceTargetId={sourceTargetId}
       >
         <button
           style={{
@@ -128,12 +182,28 @@ function LuminaFloatingWrapper({
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer',
-            marginBottom: '20px'
+            marginBottom: '20px',
+            marginTop: '70px'
           }}
         >
           点击触发动画
         </button>
       </LuminaFloating>
+
+      <button
+        onClick={handleTriggerClick}
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#2196F3',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          marginTop: '10px'
+        }}
+      >
+        直接触发动画
+      </button>
 
       <Avatar 
         id="target-avatar"
@@ -157,6 +227,7 @@ function LuminaFloatingWrapper({
           <li>飞行间隔: {flyDelay}s</li>
           <li>动画类型: {jumpingAnimationType === 1 ? '默认跳动' : '散开'}</li>
           <li>目标元素ID: target-avatar</li>
+          <li>源元素ID: {sourceTargetId || '未指定 (使用点击元素)'}</li>
         </ul>
       </div>
     </div>
@@ -174,6 +245,23 @@ export const Configurable: Story = {
     jumpDelay: 0.3,
     flyDelay: 0.1,
     jumpingAnimationType: 1 as AnimationType,
-    imageUrl: heartImage
+    imageUrl: heartImage,
+    sourceTargetId: undefined
+  }
+};
+
+export const WithSourceTarget: Story = {
+  args: {
+    count: 15,
+    beatTime: 0.8,
+    positiveSequence: true,
+    randomOffsetX: 30,
+    randomOffsetY: 30,
+    flyToTargetDuration: 1.0,
+    jumpDelay: 0.2,
+    flyDelay: 0.08,
+    jumpingAnimationType: 2 as AnimationType,
+    imageUrl: starImage,
+    sourceTargetId: 'source-avatar'
   }
 }; 

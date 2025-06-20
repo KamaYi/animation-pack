@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import './LuminaBeam.css';
+import './LuminaBeam.less';
 
 export interface LuminaBeamProps {
   /**

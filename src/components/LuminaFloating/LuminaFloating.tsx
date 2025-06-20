@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState, cloneElement, isValidElement, ReactElement } from 'react';
-import { LuminaFloatingProps } from '../../types';
+import React, { useEffect, useRef, useState, cloneElement, isValidElement, ReactElement, useImperativeHandle, forwardRef } from 'react';
+import { LuminaFloatingProps, LuminaFloatingRef } from '../../types';
+import './LuminaFloating.css';
 import './LuminaFloating.less';
 
 type AnimationType = 1 | 2;
 
-const LuminaFloating: React.FC<LuminaFloatingProps> = ({
+const LuminaFloating = forwardRef<LuminaFloatingRef, LuminaFloatingProps>(({
   imageUrl,
   count = 10,
   beatTime = 0.8,
@@ -19,9 +20,10 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
   flyToTargetClass = 'fly-to-target',
   floatingItemClass = 'floating-item',
   targetId,
+  sourceTargetId,
   onComplete,
   children
-}) => {
+}, ref) => {
   const cleanupRef = useRef<(() => void) | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -29,15 +31,65 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
 
   // 处理子元素的点击事件
   const handleChildClick = (event: React.MouseEvent) => {
-    if (isAnimating) return;
+    console.log('点击事件触发', event.currentTarget);
+    
+    if (isAnimating) {
+      console.log('动画正在进行中，忽略点击');
+      return;
+    }
     
     const rect = event.currentTarget.getBoundingClientRect();
+    console.log('点击位置:', rect.left, rect.top, rect.width, rect.height);
+    
     setStartPosition({
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2
     });
     setIsAnimating(true);
+    console.log('设置动画状态为true');
   };
+
+  // 公开触发动画的方法
+  const triggerAnimation = () => {
+    if (isAnimating) {
+      console.log('动画正在进行中，忽略触发');
+      return;
+    }
+
+    // 如果有sourceTargetId，使用它作为起始位置
+    if (sourceTargetId) {
+      const sourceElement = document.getElementById(sourceTargetId);
+      if (sourceElement) {
+        const sourceRect = sourceElement.getBoundingClientRect();
+        setStartPosition({
+          x: sourceRect.left + sourceRect.width / 2,
+          y: sourceRect.top + sourceRect.height / 2
+        });
+        setIsAnimating(true);
+        console.log('通过代码触发动画，使用sourceTargetId');
+        return;
+      }
+    }
+
+    // 如果没有sourceTargetId或找不到元素，使用子元素作为起始位置
+    if (containerRef.current && containerRef.current.firstElementChild) {
+      const firstChild = containerRef.current.firstElementChild as HTMLElement;
+      const rect = firstChild.getBoundingClientRect();
+      setStartPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      });
+      setIsAnimating(true);
+      console.log('通过代码触发动画，使用子元素');
+    } else {
+      console.error('找不到起始元素');
+    }
+  };
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    triggerAnimation
+  }));
 
   // 克隆子元素并添加点击事件
   const enhancedChildren = React.Children.map(children, child => {
@@ -60,22 +112,50 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
   });
 
   useEffect(() => {
-    if (!isAnimating || !startPosition) return;
+    if (!isAnimating || !startPosition) {
+      console.log('useEffect条件不满足:', { isAnimating, startPosition });
+      return;
+    }
+
+    console.log('开始创建动画元素');
 
     // 获取容器内的第一个子元素作为起始元素（如果未指定startX/startY）
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      console.error('容器引用不存在');
+      return;
+    }
     
     const firstChild = containerRef.current.firstElementChild as HTMLElement;
-    if (!firstChild) return;
+    if (!firstChild) {
+      console.error('容器内没有子元素');
+      return;
+    }
 
-    // 使用传入的startX/startY或计算得到的startPosition
-    const startX = startPosition.x;
-    const startY = startPosition.y;
+    // 使用传入的sourceTargetId获取起始元素，如果没有则使用点击事件位置
+    let startX = startPosition.x;
+    let startY = startPosition.y;
+    
+    // 如果指定了sourceTargetId，则使用该元素作为起始位置
+    if (sourceTargetId) {
+      console.log('尝试获取sourceTargetId元素:', sourceTargetId);
+      const sourceElement = document.getElementById(sourceTargetId);
+      if (sourceElement) {
+        const sourceRect = sourceElement.getBoundingClientRect();
+        startX = sourceRect.left + sourceRect.width / 2;
+        startY = sourceRect.top + sourceRect.height / 2;
+        console.log('使用sourceTargetId元素位置:', startX, startY);
+      } else {
+        console.error(`起始元素未找到: #${sourceTargetId}`);
+      }
+    } else {
+      console.log('使用点击位置:', startX, startY);
+    }
     
     // 获取目标元素 - 首先尝试使用targetId，如果没有则使用容器中的第一个子元素
     let target: HTMLElement;
     
     if (targetId) {
+      console.log('尝试获取targetId元素:', targetId);
       const targetElement = document.getElementById(targetId);
       if (!targetElement) {
         console.error(`目标元素未找到: #${targetId}`);
@@ -83,12 +163,14 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
       }
       target = targetElement;
     } else {
+      console.log('使用容器中的第一个子元素作为目标');
       target = firstChild;
     }
     
     const targetRect = target.getBoundingClientRect();
     const targetX = targetRect.left + targetRect.width / 2;
     const targetY = targetRect.top + targetRect.height / 2;
+    console.log('目标位置:', targetX, targetY);
 
     // 创建元素并存储它们的引用
     const elements: HTMLImageElement[] = [];
@@ -100,6 +182,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
                           jumpingAnimationType === 2 ? 0.8 : 
                           beatTime; // 默认使用beatTime
 
+    console.log('创建', count, '个浮动元素');
     // 计算图片出现的位置（围绕点击位置的小范围内随机分布）
     for (let i = 0; i < count; i++) {
       // 创建浮动元素
@@ -113,6 +196,8 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
 
       floatingEl.style.left = `${startX + offsetX}px`;
       floatingEl.style.top = `${startY + offsetY}px`;
+      
+      console.log(`元素${i}位置:`, startX + offsetX, startY + offsetY);
 
       // 添加到body并存储引用
       document.body.appendChild(floatingEl);
@@ -139,10 +224,12 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
       const randomJumpDelay = Math.random() * jumpDelay;
       const jumpTimerId = setTimeout(() => {
         floatingEl.classList.add(actualJumpingAnimationClass);
+        console.log(`元素${i}添加动画类:`, actualJumpingAnimationClass);
       }, randomJumpDelay * 1000);
       timerIds.push(jumpTimerId as unknown as number);
     }
 
+    console.log('等待', waitBeforeFly, '秒后开始飞行动画');
     // 等待动画效果结束后，按顺序飞向目标
     const mainTimerId = setTimeout(() => {
       // 对于类型1(跳动动画)，需要停止无限循环的动画
@@ -150,9 +237,11 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
         elements.forEach(el => {
           el.classList.remove('jumping-animation');
         });
+        console.log('移除跳动动画类');
       }
       // 类型2(散开动画)已经是forwards模式，无需移除类，会自动保持在最后一帧
 
+      console.log('开始飞行动画');
       // 按顺序飞向目标
       (positiveSequence ? elements : elements.reverse()).forEach((el, index) => {
         // 按顺序延迟飞向目标
@@ -166,6 +255,8 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
           // 计算到目标的距离
           const deltaX = targetX - currentX;
           const deltaY = targetY - currentY;
+          
+          console.log(`元素${index}飞行距离:`, deltaX, deltaY);
 
           // 开始飞向目标 - 使用CSS变量和类
           el.style.setProperty('--deltaX', `${deltaX}px`);
@@ -174,6 +265,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
           
           // 所有类型动画使用相同的飞行动画类
           el.classList.add(flyToTargetClass);
+          console.log(`元素${index}添加飞行类:`, flyToTargetClass);
 
           // 所有动画使用相同的动画结束时间
           const animationDuration = flyToTargetDuration;
@@ -182,13 +274,16 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
           const cleanupTimerId = setTimeout(() => {
             if (document.body.contains(el)) {
               document.body.removeChild(el);
+              console.log(`元素${index}已移除`);
             }
 
             // 如果是最后一个元素，清除所有定时器和执行完成回调
             if (index === elements.length - 1) {
               setIsAnimating(false);
+              console.log('动画完成，设置状态为false');
               if (onComplete) {
                 onComplete();
+                console.log('执行完成回调');
               }
             }
           }, animationDuration * 1000);
@@ -201,6 +296,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
 
     // 保存清除函数
     const cleanup = () => {
+      console.log('执行清理函数');
       timerIds.forEach((id) => clearTimeout(id));
       elements.forEach((el) => {
         if (document.body.contains(el)) {
@@ -231,6 +327,7 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
     flyToTargetClass,
     floatingItemClass,
     targetId,
+    sourceTargetId,
     onComplete
   ]);
 
@@ -245,6 +342,6 @@ const LuminaFloating: React.FC<LuminaFloatingProps> = ({
       {enhancedChildren}
     </div>
   );
-};
+});
 
 export default LuminaFloating; 

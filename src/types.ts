@@ -16,6 +16,11 @@ export interface LuminaFloatingProps {
   flyToTargetClass?: string; // 自定义飞行动画类名
   floatingItemClass?: string; // 自定义浮动元素类名
   targetId?: string; // 目标元素的ID
+  sourceTargetId?: string; // 起始元素的ID，如果不提供则使用子元素的第一个作为起始元素
   onComplete?: () => void;
   children: ReactNode;
+}
+
+export interface LuminaFloatingRef {
+  triggerAnimation: () => void;
 } 

@@ -34,7 +34,14 @@ export default {
       }
     }),
     postcss({
-      extensions: ['.css']
+      extensions: ['.css', '.less'],
+      use: [
+        ['less', { javascriptEnabled: true }]
+      ],
+      extract: false,
+      modules: false,
+      autoModules: false,
+      minimize: true
     }),
     image(),
     terser()
