@@ -5,14 +5,14 @@
 ## 安装
 
 ```bash
-npm install lumina-floating
+npm install lumina-animate
 ```
 
 ## 使用方法
 
 ```jsx
 import React, { useState } from 'react';
-import { LuminaFloating } from 'lumina-floating';
+import { LuminaFloating } from 'lumina-animate';
 import heartImage from './heart.png';
 
 function App() {
@@ -103,6 +103,66 @@ function App() {
   <div className="target">目标</div>
 </LuminaFloating>
 ```
+
+## 发布到 npm
+
+仓库名是 `animation-pack`，npm 包名是 `lumina-animate`。在仓库根目录逐步执行，任一步失败先解决再继续。
+
+### 1. 同步代码并检查线上版本
+
+先确认待发布的改动已经合入 `master`，工作区没有未提交的改动。
+
+```bash
+git switch master
+git pull --ff-only origin master
+git status --short
+npm view lumina-animate dist-tags --registry=https://registry.npmjs.org/
+npm pkg get version
+```
+
+如果本地版本落后于线上，先同步对应的发布提交，避免使用已发布过的版本号。
+
+### 2. 安装依赖并检查构建产物
+
+```bash
+npm ci
+npm run build
+npm pack --dry-run
+```
+
+如果 `npm ci` 提示 `package.json` 和 `package-lock.json` 不同步，先运行 `npm install --package-lock-only`，检查并提交更新后的 `package-lock.json`，再从 `npm ci` 开始重跑。如果锁文件里的镜像下载超时，可用 `npm ci --registry=https://registry.npmjs.org/ --replace-registry-host=always` 改用官方源下载。
+
+确认打包清单包含 `dist/index.js`、`dist/index.esm.js`、`dist/index.d.ts` 和 `README.md`。组件有改动时，运行 `npm run storybook` 检查受影响的示例。
+
+### 3. 升版并发布
+
+按改动选一个升版命令：
+
+| 改动 | 命令 | 从 `1.0.10` 升版的示例 |
+|---|---|---|
+| 向后兼容的修复 | `npm version patch` | `1.0.11` |
+| 向后兼容的新功能 | `npm version minor` | `1.1.0` |
+
+`npm version` 会更新 `package.json` 和 `package-lock.json`，并创建版本提交和 Git 标签。执行前确认工作区干净。然后用有该包发布权限的 npm 账号登录：
+
+```bash
+npm login --registry=https://registry.npmjs.org/
+npm whoami --registry=https://registry.npmjs.org/
+npm publish --tag latest --registry=https://registry.npmjs.org/
+```
+
+`npm publish` 会通过 `prepublishOnly` 重新构建。发布时按提示完成 [npm 双重验证](https://docs.npmjs.com/requiring-2fa-for-package-publishing-and-settings-modification/)。如果发布报错，先查线上版本；若新版本尚未上传，解决错误后重试 `npm publish`，无需再次升版。
+
+### 4. 验证并推送 Git 标签
+
+```bash
+npm view lumina-animate@latest version --registry=https://registry.npmjs.org/
+git push origin master
+# 以 1.0.11 为例，请替换为本次实际创建的标签
+git push origin v1.0.11
+```
+
+确认 `latest` 返回本次版本号后再推送提交和标签。
 
 ## 许可证
 
